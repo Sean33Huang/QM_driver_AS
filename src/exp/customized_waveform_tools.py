@@ -1,7 +1,7 @@
 import numpy as np
 
 def multi_sine_pulse_waveforms(
-    amplitude, length, anharmonicity, detuning=0.0,alpha=0, **kwargs
+    amplitude, length, anharmonicity, detuning=0.0, **kwargs
 ):
     """
     Creates Cosine based DRAG waveforms that compensate for the leakage and for the AC stark shift.

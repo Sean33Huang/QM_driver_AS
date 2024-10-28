@@ -17,7 +17,8 @@ gate_length = 40
 xy_elements = ["q3_xy"]
 ro_elements = ["q3_ro"]
 
-n_avg = 100  # Number of averaging loops for each random sequence
+# threshold = the_specs.get_spec_forConfig('ro')[xy_element]['ge_threshold']
+n_avg = 50  # Number of averaging loops for each random sequence
 max_circuit_depth = 1024  # Maximum circuit depth
 base_clifford = 2  #  Play each sequence with a depth step equals to 'delta_clifford - Must be > 1
 assert base_clifford > 1, 'base must > 1'
@@ -31,10 +32,9 @@ interleaved_gate_index = 2
 ## 13 = -x90
 ## 14 = y90
 ## 15 = -y90
-shot_num = 100
+shot_num = 50
 # Flag to enable state discrimination if the readout has been calibrated (rotated blobs and threshold)
-state_discrimination = True
-threshold = 4.746e-05
+# state_discrimination = [1e-3]
 
 # ------------------------------------------------------------
 from exp.randomized_banchmarking_sq import randomized_banchmarking_sq
@@ -44,13 +44,12 @@ my_exp.initializer = initializer(100000,mode='wait')
 my_exp.gate_length = gate_length
 my_exp.xy_elements = xy_elements
 my_exp.ro_elements = ro_elements
+# my_exp.threshold = threshold
 my_exp.n_avg = n_avg
 my_exp.max_circuit_depth = max_circuit_depth 
 my_exp.base_clifford = base_clifford
 assert my_exp.base_clifford > 1, 'base must > 1'
 my_exp.seed = seed 
-my_exp.state_discrimination = state_discrimination
-my_exp.threshold = threshold
 dataset = my_exp.run(shot_num)
 
 from exp.randomized_banchmarking_interleaved_sq import randomized_banchmarking_interleaved_sq
@@ -60,14 +59,13 @@ my_exp.initializer = initializer(100000,mode='wait')
 my_exp.gate_length = gate_length
 my_exp.xy_elements = xy_elements
 my_exp.ro_elements = ro_elements
+# my_exp.threshold = threshold
 my_exp.n_avg = n_avg
 my_exp.max_circuit_depth = max_circuit_depth 
 my_exp.base_clifford = base_clifford
 assert my_exp.base_clifford > 1, 'base must > 1'
 my_exp.seed = seed 
 my_exp.interleaved_gate_index = interleaved_gate_index
-my_exp.state_discrimination = state_discrimination
-my_exp.threshold = threshold
 dataset_interleaved = my_exp.run(shot_num)
 
 save_data = 1
@@ -82,10 +80,8 @@ if save_data:
     dp.save_nc(dataset_interleaved,"1QRB_interleaved")
 
 from exp.plotting import Painter1QRB_infidelity
-painter = Painter1QRB_infidelity()
-painter.state_discrimination = my_exp.state_discrimination
-painter.interleaved_gate_index = my_exp.interleaved_gate_index
-figs = painter.plot(dataset,folder_label,infidelity=dataset_interleaved)
+painter = Painter1QRB_infidelity(my_exp.interleaved_gate_index)
+figs = painter.plot(dataset,folder_label,infedelity=dataset_interleaved)
 if save_data: dp.save_figs( figs )
 
 # plot_SQRB_result( x, value_avg, error_avg )

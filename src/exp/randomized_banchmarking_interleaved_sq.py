@@ -96,7 +96,7 @@ class randomized_banchmarking_interleaved_sq(QMMeasurement):
 
     
             if self.state_discrimination:
-                state_st = [declare_stream() for _ in range(len(self.ro_elements))]
+                state_st = [declare_stream() for _ in range(self.ro_elements)]
 
             with for_(m, 0, m < self.shot_num, m + 1):  # QUA for_ loop over the random sequences
                 sequence_list, inv_gate_list = self._generate_sequence()  # Generate the random sequence of length max_circuit_depth

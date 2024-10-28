@@ -64,6 +64,7 @@ def update_controlWaveform(config:Configuration,updatedSpec:dict={},target_q:str
                     "-x90": "-x/2",
                     "y90": "y/2",
                     "-y90": "-y/2",
+                    "xmultisin": "xmultisin"
                 }
                 waveform_remaker.QsXyInfo = updatedSpec[q]
                 wf = waveform_remaker.build_XYwaveform(target_q=q,axis=conv_table[opration])

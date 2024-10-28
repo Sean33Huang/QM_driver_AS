@@ -136,7 +136,7 @@ class XYFreqFlux( QMMeasurement ):
         freqs_mhz = self.qua_freqs/1e6
         amp_ratio = self.qua_z_amp_ratio_array
         coords = { 
-            "mixer":np.array(["I","Q"]),
+            "mixer":np.array(["I","Q"]), 
             "amp_ratio":amp_ratio,
             "frequency": freqs_mhz,
             #"prepare_state": np.array([0,1])

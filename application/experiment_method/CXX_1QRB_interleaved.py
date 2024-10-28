@@ -49,8 +49,7 @@ if save_data:
     dp.save_nc(dataset,"1QRB_interleaved")
 
 from exp.plotting import Painter1QRB_interleaved
-painter = Painter1QRB_interleaved()
-painter.interleaved_gate_index = my_exp.interleaved_gate_index
+painter = Painter1QRB_interleaved(my_exp.interleaved_gate_index)
 figs = painter.plot(dataset,folder_label)
 if save_data: dp.save_figs( figs )
 
