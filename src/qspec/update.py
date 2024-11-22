@@ -55,11 +55,12 @@ def update_controlWaveform(config:Configuration,updatedSpec:dict={},target_q:str
            
             pulse_name = f"{element_name}_{opration}_pulse"
             # Single Q operation
-            if opration in ["x180", "-x180", "y180", "x90", "-x90", "y90", "-y90", "multisin"]: 
+            if opration in ["x180", "-x180", "y180", "-y180", "x90", "-x90", "y90", "-y90"]: 
                 conv_table = {
                     "x180": "x",
                     "-x180": "-x",
                     "y180": "y",
+                    "-y180": '-y',
                     "x90": "x/2",
                     "-x90": "-x/2",
                     "y90": "y/2",
@@ -100,6 +101,15 @@ def update_z_crosstalk(config:Configuration,zInfo:dict,wire:dict):
 
     z_output[channel].crosstalk = zInfo["crosstalk"]   
    
+def update_z_filter(config:Configuration,zInfo:dict,wire:dict):
+    '''
+        update the z filter in config controllers belongs to the target qubit.\n
+        zInfo is the dict belongs to the target qubit returned by the func. `Circuit_info().update_zInfo_for()`\n
+    '''
+    ctrler_name, channel = wire["z"]
+    z_output = config.controllers[ctrler_name].analog_outputs
+
+    z_output[channel].filter = zInfo["filter"] 
 
 def update_zWaveform(config,updatedZspec:dict,target_q:str="all"):
     """

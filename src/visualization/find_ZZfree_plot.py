@@ -91,7 +91,8 @@ def plot_pureZZ(data):
 
     ZZfree_flux = flux[np.argmin(abs(Crosstalk))]
 
-    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, figsize=(8, 15))
+    # fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, figsize=(8, 15))
+    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(15, 8))
 
     c = ax1.pcolormesh(flux, time, data[q][0, :, :].T, cmap='RdBu', shading='auto')
     ax1.set_title("Tau X Flux")
@@ -104,10 +105,11 @@ def plot_pureZZ(data):
     ax2.set_ylabel("Crosstalk [MHz]")
     ax2.text(0.07, 0.9, f"min crosstalk at : {ZZfree_flux:.3f}", fontsize=10, transform=ax2.transAxes)
     
-    ax3.plot(flux, compute_fc(flux, 7.323, 4.663579, 0.225, 0.132), label="fc", color='blue')
-    ax3.set_title("fc(z) X Flux")
+    # ax3.plot(flux, compute_fc(flux, 7.323, 4.663579, 0.225, 0.132), label="fc", color='blue')
+    # ax3.set_title("fc(z) X Flux")
 
     plt.tight_layout(rect=[0, 0, 1, 0.96])
+    return fig
 
 def plot_crosstalk_X_frequency(data):
     """

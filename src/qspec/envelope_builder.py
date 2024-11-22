@@ -17,20 +17,60 @@ class EnvelopeBuilder:
             ex. given_wf_array = {"I":array([0.1,0.1,0.1]),"Q":array([0.1,0.8,0.1])}
         '''
         from qualang_tools.config.waveform_tools import drag_gaussian_pulse_waveforms, drag_cosine_pulse_waveforms
-        from exp.customized_waveform_tools import multi_sine_pulse_waveforms
+        from exp.customized_waveform_tools import drag_multi_sine_pulse_waveforms, double_multi_sine_pulse_waveforms
 
         # search the waveform function
         
-        func = 'drag' if self.QsXyInfo["waveform_func"] == 0 else self.QsXyInfo["waveform_func"] 
-        if func.lower() in ['drag','dragg','gdrag']:
-            def wf_func(amp, width, sigma, *args):
-                return drag_gaussian_pulse_waveforms(amp, width, sigma, args[0], args[1], args[2])
+        func = 'dragg' if self.QsXyInfo["waveform_func"] == 0 else list(self.QsXyInfo["waveform_func"].keys())[0]
+        if func.lower() in ['dragg','gdrag']:
+            sfactor = 4
+            if self.QsXyInfo["waveform_func"] != 0:
+                if 'dragg' in self.QsXyInfo["waveform_func"].keys() and 'sfactor' in self.QsXyInfo["waveform_func"]['dragg'].keys():
+                    sfactor = self.QsXyInfo["waveform_func"]['dragg']['sfactor'] 
+            func_param = [self.QsXyInfo["pi_len"]/sfactor]
+            def wf_func(amp, width, draga, anh, ac, *args):
+                return drag_gaussian_pulse_waveforms(amplitude=amp, 
+                                                     length=width, 
+                                                     alpha=draga, 
+                                                     anharmonicity=anh,
+                                                     detuning=ac,
+                                                     sigma=args[0])
         elif func.lower() in ['gauss','g','gaussian']:
-            def wf_func(amp, width, sigma, *args):
-                return drag_gaussian_pulse_waveforms(amp, width, sigma, 0, args[1], args[2])
-        elif func.lower() in ['sin','sine']:
-            def wf_func(amp, width, *args):
-                return multi_sine_pulse_waveforms(amp, width, args[1], args[2])
+            sfactor = 4
+            if 'gauss' in self.QsXyInfo["waveform_func"].keys() and 'sfactor' in self.QsXyInfo["waveform_func"]['dragg'].keys():
+                sfactor = self.QsXyInfo["waveform_func"]['dragg']['sfactor'] 
+            func_param = [self.QsXyInfo["pi_len"]/sfactor]
+            def wf_func(amp, width, draga, anh, ac, *args):
+                return drag_gaussian_pulse_waveforms(amplitude=amp, 
+                                                     length=width, 
+                                                     alpha=0, 
+                                                     anharmonicity=anh,
+                                                     detuning=ac,
+                                                     sigma=args[0])
+        elif func.lower() in ['double_multisin']:
+            func_param = [self.QsXyInfo["waveform_func"]['double_multisin']['wx2_amp'],
+                          self.QsXyInfo["waveform_func"]['double_multisin']['wx3_amp']
+                          ]
+            def wf_func(amp, width, draga, anh, ac, *args):
+                return double_multi_sine_pulse_waveforms(amplitude=amp, 
+                                                         length=width, 
+                                                         alpha=draga, 
+                                                         anharmonicity=anh,
+                                                         detuning=ac,
+                                                         wx2_amp=args[0],
+                                                         wx3_amp=args[1])
+        elif func.lower() in ['drag_multisin']:
+            func_param = [self.QsXyInfo["waveform_func"]['drag_multisin']['wx2_amp'],
+                          self.QsXyInfo["waveform_func"]['drag_multisin']['wx3_amp']
+                          ]
+            def wf_func(amp, width, draga, anh, ac, *args):
+                return drag_multi_sine_pulse_waveforms(amplitude=amp, 
+                                                       length=width, 
+                                                       alpha=draga, 
+                                                       anharmonicity=anh,
+                                                       detuning=ac,
+                                                       wx2_amp=args[0],
+                                                       wx3_amp=args[1])
         else:
             raise ValueError("Only surpport Gaussian or DRAG-gaussian waveform!")
         
@@ -38,6 +78,15 @@ class EnvelopeBuilder:
         angle = axis.split("/")[-1] # if "X/2" angle = 2, other angle = 'x'...
         rota_direction = -1 if axis.split("/")[0][0]=="-" else 1
 
+        # Manual waveform
+        if kwargs != {} and "given_wf_array" in list(kwargs.keys()):
+            if "I" in list(kwargs["given_wf_array"].keys()) and "Q" in list(kwargs["given_wf_array"].keys()):
+                given_wf = kwargs["given_wf_array"]
+                return given_wf
+            else:
+                raise ValueError(f"The keynames in given_wf_array dict should be 'I' and 'Q', but recieved keynames: {kwargs['given_wf_array'].keys()}")
+
+        # Defult waveform
         if angle in ["2"]:
             correspond_name = str(int(180/int(angle)))
             # check the /2 modified scale in the spec
@@ -49,47 +98,33 @@ class EnvelopeBuilder:
         else:
             scale = rota_direction*1
 
-        # check pulse sigma
-        if kwargs != {} and "sfactor" in list(kwargs.keys()):
-            S_factor = kwargs["sfactor"]
-        else:
-            S_factor = 4
-
-        if kwargs != {} and "given_wf_array" in list(kwargs.keys()):
-            use_given_wf = True
-            if "I" in list(kwargs["given_wf_array"].keys()) and "Q" in list(kwargs["given_wf_array"].keys()):
-                given_wf = kwargs["given_wf_array"]
-            else:
-                raise ValueError(f"The keynames in given_wf_array dict should be 'I' and 'Q', but recieved keynames: {kwargs['given_wf_array'].keys()}")
-        else :
-            use_given_wf = False
-
         if 'x' in axis[:2].lower():
             wf, der_wf = array(
-                wf_func(self.QsXyInfo["pi_amp"]*scale, self.QsXyInfo["pi_len"], self.QsXyInfo["pi_len"]/S_factor, self.QsXyInfo["drag_coef"], self.QsXyInfo["anharmonicity"], self.QsXyInfo["AC_stark_detuning"])
+                wf_func(self.QsXyInfo["pi_amp"]*scale, 
+                        self.QsXyInfo["pi_len"], 
+                        self.QsXyInfo["drag_coef"], 
+                        self.QsXyInfo["anharmonicity"], 
+                        self.QsXyInfo["AC_stark_detuning"],
+                        *func_param)
             )
             I_wf = wf
             Q_wf = der_wf
         elif 'y' in axis[:2].lower():
             wf, der_wf = array(
-                wf_func(self.QsXyInfo["pi_amp"]*scale, self.QsXyInfo["pi_len"], self.QsXyInfo["pi_len"]/S_factor, self.QsXyInfo["drag_coef"], self.QsXyInfo["anharmonicity"], self.QsXyInfo["AC_stark_detuning"])
+                wf_func(self.QsXyInfo["pi_amp"]*scale, 
+                        self.QsXyInfo["pi_len"], 
+                        self.QsXyInfo["drag_coef"], 
+                        self.QsXyInfo["anharmonicity"], 
+                        self.QsXyInfo["AC_stark_detuning"],
+                        *func_param)
             )
             I_wf = (-1)*der_wf
             Q_wf = wf 
-        elif 'multisin' in axis[:].lower():
-            wf, der_wf = array(
-                wf_func(self.QsXyInfo["pi_amp"]*scale, self.QsXyInfo["pi_len"], self.QsXyInfo["anharmonicity"], self.QsXyInfo["AC_stark_detuning"])
-            )
-            I_wf = wf
-            Q_wf = der_wf
         else:
             print(axis[0].lower())
             raise ValueError("Check the given axis, It should start with 'x' or 'y'!")
-    
-        if use_given_wf:
-            return given_wf
-        else:
-            return {"I":I_wf, "Q":Q_wf}
+               
+        return {"I":I_wf, "Q":Q_wf}
         
     def build_zWaveform(self,axis:str,**kwargs)->dict:
         ''' Create the pulse waveform for XY control for target qubit\n

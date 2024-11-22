@@ -13,30 +13,29 @@ from ab.QM_config_dynamic import initializer
 
 import matplotlib.pyplot as plt
 
-from visualization.find_ZZfree_plot import plot_ZZfree, plot_tau_X_flux, plot_pureZZ, plot_1D_ramsey, plot_fft, plot_crosstalk_X_frequency
+from visualization.find_ZZfree_plot import plot_pureZZ
 
 import xarray as xr
 
 # Set parameters
-from exp.find_zzfree import ZZCouplerFreqRamsey, ZZCouplerFreqEcho
-my_exp = ZZCouplerFreqEcho(config, qmm)
-my_exp.ro_elements = ["q3_ro", "q4_ro"]
-my_exp.zz_detector_xy = ["q3_xy"]
-my_exp.zz_source_xy = ["q4_xy"] # conditional x gate
-my_exp.coupler_z = ["q8_z"]
-my_exp.time_range = (4, 40000) #ns
-my_exp.time_resolution = 400
-my_exp.predict_detune = 0.2 #MHz 
-my_exp.flux_range = ( -1.5, 1.5 )
-my_exp.resolution = 0.03
+from exp.T2_spectrum import T2_Echo_spectrum, T2_Ramsey_spectrum
+my_exp = T2_Echo_spectrum(config, qmm)
+#now only plot the first ro_element
+my_exp.ro_elements = ["q4_ro", "q3_ro"]
+my_exp.xy_elements = ["q4_xy"]
+my_exp.z_elements = ["q4_z"]
+my_exp.time_range = (4, 20000) #ns
+my_exp.time_resolution = 200
+my_exp.flux_range = ( -0.3, 0.3 )
+my_exp.resolution = 0.006
 
 
-my_exp.initializer = initializer(200000,mode='wait')
-dataset = my_exp.run( 1000 )
+my_exp.initializer = initializer(100000,mode='wait')
+dataset = my_exp.run( 500 )
 
 #Save data
 save_data = True
-folder_label = f"find_ZZfree_{my_exp.zz_detector_xy[0][:2]}_{my_exp.zz_source_xy[0][:2]}"
+folder_label = f"T2_spectrum"
 
 
 if save_data: 

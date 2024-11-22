@@ -142,7 +142,7 @@ def create_xyChannel(config:Configuration, name, xyInfo:dict, wireInfo:dict):
     pulse_name = f"{name}_const_pulse"
     waveform_name = f"{name}_const_wf"
 
-    default_native_gates = [ "x180","-x180","y180","x90","-x90","y90","-y90" ]
+    default_native_gates = [ "x180","-x180","y180","-y180","x90","-x90","y90","-y90" ]
     element = Element(name, "mixInputs")
     element.input_map.I = wireInfo["xy_I"]
     element.input_map.Q = wireInfo["xy_Q"]
@@ -200,6 +200,7 @@ def create_xyChannel(config:Configuration, name, xyInfo:dict, wireInfo:dict):
             case "x180": a = "x"
             case "-x180": a = "-x"
             case "y180": a = "y"
+            case "-y180": a = "-y"
             case "x90": a = "x/2"
             case "-x90": a = "-x/2"
             case "y90": a = "y/2"

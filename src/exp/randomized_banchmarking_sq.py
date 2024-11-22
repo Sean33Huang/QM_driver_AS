@@ -21,16 +21,9 @@ Prerequisites:
 
 from qm.qua import *
 from qm.QuantumMachinesManager import QuantumMachinesManager
-from qm import SimulationConfig
-from scipy.optimize import curve_fit
-
-import matplotlib.pyplot as plt
 import numpy as np
 from qualang_tools.bakery.randomized_benchmark_c1 import c1_table
 inv_gates = [int(np.where(c1_table[i, :] == 0)[0][0]) for i in range(24)]
-
-from qualang_tools.results import fetching_tool, progress_counter
-from qualang_tools.plot import interrupt_on_close
 import warnings
 warnings.filterwarnings("ignore")
 from qualang_tools.units import unit

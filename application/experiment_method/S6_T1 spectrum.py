@@ -16,19 +16,36 @@ from exp.plotting import plot_and_save_T1_spectrum
 import matplotlib.pyplot as plt
 
 # Set parameters
-init_macro = initializer(300000,mode='wait')
-ro_elements = ["q0_ro"]
-q_name = ["q0_xy"]
-z_name = ['q0_z']
+init_macro = initializer(200000,mode='wait')
+ro_elements = ["q3_ro"]
+q_name = ["q3_xy"]
+z_name = ['q8_z']
 
 n_avg = 200
 max_time = 60 #us
 time_resolution = 0.6 #us
-flux_range = (-0.3, 0.3)
-flux_resolution = 0.0015
+flux_range = (-0.6, 0.6)
+flux_resolution = 0.003
 
 from exp.z_pulse_relaxation_time import z_pulse_relaxation_time
-dataset = z_pulse_relaxation_time( max_time, time_resolution, flux_range, flux_resolution, q_name, z_name, ro_elements, config, qmm, n_avg=n_avg, initializer=init_macro)
+# dataset = z_pulse_relaxation_time( max_time, time_resolution, flux_range, flux_resolution, q_name, z_name, ro_elements, config, qmm, n_avg=n_avg, initializer=init_macro)
+my_exp = z_pulse_relaxation_time(config, qmm)
+my_exp.max_time = 20
+my_exp.time_resolution = 0.2
+my_exp.flux_range = [-0.3,0.3]
+my_exp.flux_resolution = 0.006
+my_exp.q_name = ["q3_xy"]
+
+import exp.config_par as gc
+
+z= "q8_z"
+my_exp.ref_z_offset = {z: gc.get_offset(z, config)}
+
+my_exp.ro_elements = ["q3_ro", "q4_ro"]
+
+
+my_exp.initializer = initializer(100000,mode='wait')
+dataset = my_exp.run( 100 )
 
 save_data = 1
 if save_data: 

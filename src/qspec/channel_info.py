@@ -247,7 +247,10 @@ class ChannelInfo:
                     case "AC_stark_detuning":
                         init_value = 0 * u.MHz
                     case "waveform_func":
-                        init_value = 'drag'
+                        init_value = {'dragg':{
+                                        'sfactor' : 4,
+                                        }
+                                    }   
                     case _:
                         init_value = {"180":1,"90":1}
                 self._XyInfo[f'q{idx}'][info] = init_value 
@@ -285,6 +288,8 @@ class ChannelInfo:
             elif name.lower() == 'if':
                 self._XyInfo[target_q]["qubit_IF"] = int(kwargs[name]*u.MHz)
                 new_freq["qubit_IF_"+target_q] = int(kwargs[name]*u.MHz)
+            elif name.lower() in ['half_scale','half']:
+                self._XyInfo[target_q]["pi_ampScale"]["90"] = kwargs[name]
             elif name.lower() in ['draga','drag_coef'] :
                 self._XyInfo[target_q]["drag_coef"] = kwargs[name]
             elif name.lower() in ["delta","d","anh","anharmonicity"]:
@@ -293,8 +298,6 @@ class ChannelInfo:
                 self._XyInfo[target_q]["AC_stark_detuning"] = int(kwargs[name]*u.MHz)
             elif name.lower() in ['waveform',"func",'wf']:
                 self._XyInfo[target_q]["waveform_func"] = kwargs[name]
-            elif name.lower() in ['half_scale','half']:
-                self._XyInfo[target_q]["pi_ampScale"]["90"] = kwargs[name]
             elif name.lower() in ['const_amp']:
                 self._XyInfo[target_q]["const_amp"] = kwargs[name]
             else:
@@ -375,6 +378,8 @@ class ChannelInfo:
                 if info.lower() in ["controller","con_channel","offset","offbias","idle"]:
                     self._ZInfo[target_q][info] = kwargs[info]
                 elif info.lower() in ["crosstalk"]:
+                    self._ZInfo[target_q][info] = kwargs[info]
+                elif info.lower() in ["filter"]:
                     self._ZInfo[target_q][info] = kwargs[info]
                 elif info.lower() in ["settle"]:
                     self._ZInfo["settle_time"] = int(kwargs[info]*u.ns)
