@@ -96,9 +96,8 @@ class randomized_banchmarking_sq_20ns(QMMeasurement):
         self.max_circuit_depth = 200
         self.base_clifford = 2 # >= 2
         self.initializer = None
-        self.n_avg = 100
+        self.n_avg = 1
         self.state_discrimination = False
-        self.initialization_macro = False
         self.seed = None
         self.threshold = 0
         self.x = np.array([])
@@ -148,10 +147,16 @@ class randomized_banchmarking_sq_20ns(QMMeasurement):
                         assign(seq_length, sequence_pairs_lengths[depth - 1] + 2)
 
                         with for_(n, 0, n < self.n_avg, n + 1):  # Averaging loop
-                            # Can be replaced by active reset
-                            wait(100 * u.us, "resonator")
-                            if self.initialization_macro:
-                                wait(100 * u.us, "resonator")
+                            # Initialize
+                            if self.initializer is None:
+                                # wait(thermalization_time * u.ns)
+                                wait(100 * u.us)
+                            else:
+                                try:
+                                    self.initializer[0](*self.initializer[1])
+                                except:
+                                    print("Initializer didn't work!")
+                                    wait(100*u.us)
                             # Align the two elements to play the sequence after qubit initialization
                             align("resonator", "qubit")
                             # The strict_timing ensures that the sequence will be played without gaps

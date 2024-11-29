@@ -631,9 +631,9 @@ class Painter1QRB( RawDataPainter ):
     def _ana_SQRB(self, x, y ):
         from scipy.optimize import curve_fit
         if self.state_discrimination == True:
-            p0 = [-0.5, 1]
-            def fit_func(power, a, p):
-                return power_law(power, a, p, 0.5)
+            p0 = [-0.5, 1, 0.5]
+            def fit_func(power, a, p, b):
+                return power_law(power, a, p, b)
         else:
             p0=[-0.0001, 0.0001, 0.0001]
             def fit_func(power, a, p, b):
@@ -660,7 +660,7 @@ class Painter1QRB( RawDataPainter ):
         
         return stdevs, pars
 
-class Painter1QRB_interleaved( RawDataPainter ):
+class Painter1QRBInterleaved( RawDataPainter ):
 
     def __init__(self):
         self.interleaved_gate_index = 0
@@ -710,11 +710,19 @@ class Painter1QRB_interleaved( RawDataPainter ):
 
     def _ana_SQRB(self, x, y ):
         from scipy.optimize import curve_fit
+        if self.state_discrimination == True:
+            p0 = [-0.5, 1, 0.5]
+            def fit_func(power, a, p, b):
+                return power_law(power, a, p, b)
+        else:
+            p0=[-0.0001, 0.0001, 0.0001]
+            def fit_func(power, a, p, b):
+                return power_law(power, a, p, b)
         pars, cov = curve_fit(
             f=power_law,
             xdata=x,
             ydata=y,
-            p0=[-0.0001, 0.0001, 0.0001],
+            p0=p0,
             bounds=(-np.inf, np.inf),
             maxfev=2000,
         )
@@ -747,7 +755,7 @@ class Painter1QRB_interleaved( RawDataPainter ):
         elif self.interleaved_gate_index == 15:
             return "-y90"
 
-class Painter1QRB_infidelity( RawDataPainter ):
+class Painter1QRBInfidelity( RawDataPainter ):
 
     def __init__(self):
         self.interleaved_gate_index = 0
@@ -793,8 +801,8 @@ class Painter1QRB_infidelity( RawDataPainter ):
         ax.set_xlabel("Number of Clifford gates")
         ax.set_ylabel("Sequence Fidelity")
         if self.state_discrimination == True:
-            ax.plot( x, power_law(x, *pars, 0.5),"o", label="data",markersize=1,linestyle="--", linewidth=2)
-            ax.plot( x, power_law(x, *pars_inl, 0.5),"o", label="data_inl",markersize=1,linestyle="--", linewidth=2)
+            ax.plot( x, power_law(x, *pars),"o", label="data",markersize=1,linestyle="--", linewidth=2)
+            ax.plot( x, power_law(x, *pars_inl),"o", label="data_inl",markersize=1,linestyle="--", linewidth=2)
         else:
             ax.plot( x, power_law(x, *pars),"o", label="data",markersize=1,linestyle="--", linewidth=2)
             ax.plot( x, power_law(x, *pars_inl),"o", label="data_inl",markersize=1,linestyle="--", linewidth=2)
@@ -838,9 +846,9 @@ class Painter1QRB_infidelity( RawDataPainter ):
     def _ana_SQRB(self, x, y ):
         from scipy.optimize import curve_fit
         if self.state_discrimination == True:
-            p0 = [-0.5, 1]
-            def fit_func(power, a, p):
-                return power_law(power, a, p, 0.5)
+            p0 = [-0.5, 1, 0.5]
+            def fit_func(power, a, p, b):
+                return power_law(power, a, p, b)
         else:
             p0=[-0.0001, 0.0001, 0.0001]
             def fit_func(power, a, p, b):
@@ -883,7 +891,7 @@ class Painter1QRB_infidelity( RawDataPainter ):
         elif self.interleaved_gate_index == 15:
             return "-y90"
 
-class Painter1QRB_gate_optimization( RawDataPainter ):
+class Painter1QRBGateOptimization( RawDataPainter ):
 
     def __init__(self):
         self.interleaved_gate_index = 0
@@ -936,7 +944,7 @@ class Painter1QRB_gate_optimization( RawDataPainter ):
         elif self.interleaved_gate_index == 15:
             return "-y90"
 
-class Painter1QRB_infidelity_shift_one_param( RawDataPainter ):
+class Painter1QRBInfidelityShiftOneParam( RawDataPainter ):
 
     def __init__(self):
         self.interleaved_gate_index = 0
@@ -992,20 +1000,43 @@ class Painter1QRB_infidelity_shift_one_param( RawDataPainter ):
             return "-y90"
 
 
-class PainterXYCaliAmp( RawDataPainter ):
+class PainterXYCali( RawDataPainter ):
     def __init__(self):
         self.process = 'amp'
+
+    def _data_parser( self ):
+        dataarray = self.plot_data
+        self.sequence = dataarray.coords["sequence"].values
+        match self.process:
+            case 'amp':
+                self.x = dataarray.coords["amplitude_ratio"].values
+            case 'freq':
+                self.x = dataarray.coords["time"].values
+            case 'drag':
+                self.x = dataarray.coords["drag_coef"].values
+        idata_1 = dataarray.values[0][0]
+        qdata_1 = dataarray.values[1][0]
+        self.zdata_1 = idata_1 +1j*qdata_1
+        idata_2 = dataarray.values[0][1]
+        qdata_2 = dataarray.values[1][1]
+        self.zdata_2 = idata_2 +1j*qdata_2
+
+    def _plot_method( self ):
+        fig, ax = plt.subplots()
+        ax.plot(self.x, np.real(self.zdata_1), label=self.sequence[0])
+        ax.plot(self.x, np.real(self.zdata_2), label=self.sequence[1])
+        fig.legend()
+        plt.tight_layout()
+
+        return fig
+
+class Painter1QDB( RawDataPainter ):
+    def __init__(self):
         self.gate = 1
 
     def _data_parser( self ):
         dataarray = self.plot_data
-        match self.process:
-            case 'amp':
-                self.x = dataarray.coords["amplitude_ratio"].values
-            case 'repeat':
-                self.x = dataarray.coords["repeat_time"].values
-            case 'freq':
-                self.x = dataarray.coords["frequency"].values
+        self.x = dataarray.coords["repeat_time"].values
         idata = dataarray.values[0]
         qdata = dataarray.values[1]
         self.zdata = idata +1j*qdata
@@ -1029,8 +1060,7 @@ class PainterXYCaliAmp( RawDataPainter ):
                 return 'Y Y'
             case 4:
                 return 'Y -Y'
-            case 11:
-                return 'X/2 X/2 X/2 X/2'
+
 
 #S2 finished
 def plot_and_save_dispersive_limit(dataset, folder_save_dir, my_exp, save_data = True):

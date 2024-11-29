@@ -249,8 +249,8 @@ if save_data:
     dp.save_config(config)
     dp.save_nc(dataset,folder_label)
 
-from exp.plotting import Painter1QRB_gate_optimization
-painter = Painter1QRB_gate_optimization()
+from exp.plotting import Painter1QRBGateOptimization
+painter = Painter1QRBGateOptimization()
 painter.interleaved_gate_index = interleaved_gate_index
 figs = painter.plot(dataset,folder_label,opt_result=result)
 if save_data: dp.save_figs( figs )

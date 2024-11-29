@@ -18,10 +18,10 @@ from ab.QM_config_dynamic import initializer
 my_exp.initializer = initializer(50000,mode='wait')
 my_exp.ro_elements = ["q3_ro"]
 my_exp.xy_elements = ["q3_xy"]
-my_exp.virtual_detune = 1
-my_exp.max_time = 8
+my_exp.virtual_detune = 0
+my_exp.max_time = 60
 my_exp.time_resolution = 0.2
-dataset = my_exp.run(40)
+dataset = my_exp.run(400)
 
 #Save data
 save_data = 1
@@ -54,15 +54,15 @@ if save_data:
     from exp.save_data import DataPackager
     folder_label = "ramseyT2_rep" #your data and plots will be saved under a new folder with this name
     save_dir = link_config["path"]["output_root"]
-    dp = DataPackager( save_dir, folder_label )
+    dp = DataPackager(save_dir, folder_label )
     dp.save_config(config)
-    dp.save_nc(dataset,"ramseyT2_rep")
+    dp.save_nc(dataset[re_exp.exp_name[0]],"ramseyT2_rep")
 
 #To plot the result of multiple measurements (2D graph and histogram), use the following block of code
 #================================================================================================#
 from exp.plotting import PainterT2Repeat
 painter = PainterT2Repeat()
-figs = painter.plot(dataset,folder_label)
+figs = painter.plot(dataset[re_exp.exp_name[0]],folder_label)
 if save_data: dp.save_figs( figs )
 
 # import qcat.visualization.qubit_relaxation as qv

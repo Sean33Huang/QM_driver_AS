@@ -178,8 +178,8 @@ if save_data:
     dp.save_config(config)
     dp.save_nc(dataset,folder_label)
 
-from exp.plotting import Painter1QRB_infidelity_shift_one_param
-painter = Painter1QRB_infidelity_shift_one_param()
+from exp.plotting import Painter1QRBInfidelityShiftOneParam
+painter = Painter1QRBInfidelityShiftOneParam()
 painter.interleaved_gate_index = interleaved_gate_index
 figs = painter.plot(dataset,folder_label)
 if save_data: dp.save_figs( figs )

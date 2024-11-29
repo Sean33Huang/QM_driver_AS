@@ -12,22 +12,31 @@ qmm, _ = spec.buildup_qmm()
 from ab.QM_config_dynamic import initializer
 
 # Set parameters
-from exp.SQGate_amp_calibration import SQGate_amp_calibration
-my_exp = SQGate_amp_calibration(config, qmm)
-my_exp.initializer = initializer(10000,mode='wait')
+from exp.SQGate_calibration_new import SQGate_calibration
+my_exp = SQGate_calibration(config, qmm)
+my_exp.initializer = initializer(200000,mode='wait')
 my_exp.ro_elements = ['q3_ro']
 my_exp.xy_elements = ["q3_xy"]
-my_exp.amp_ratio = 1            # is variable if process = 'amp'
-my_exp.sequence_repeat = 20     # is variable if process = 'repeat'
-my_exp.freq_range = (-10, 10)   # is variable if process = 'freq'
-my_exp.freq_resolution = 0.5    
-my_exp.process = 'freq'  # 'amp', 'repeat', 'freq'
-my_exp.gate = 1
-dataset = my_exp.run( 200 )
+my_exp.sequence_repeat = 1
+
+# Are variables if process = 'amp'
+my_exp.amp_ratio = 1
+
+# Are variables if process = 'freq'
+my_exp.virtial_detune_freq = 0.2
+my_exp.point_per_period = 20
+my_exp.max_period = 20
+
+# Are variables if process = 'drag'
+my_exp.draga_points = 150            
+
+my_exp.process = 'freq'  # 'amp', 'freq', 'drag'
+
+dataset = my_exp.run( 100 )
 
 #Save data
 save_data = True
-folder_label = "xy_amp_cali"
+folder_label = "xy_cali_freq_test"
 if save_data: 
     from exp.save_data import DataPackager
     save_dir = link_config["path"]["output_root"]
@@ -37,9 +46,8 @@ if save_data:
 
 # Plot
 save_figure = 1
-from exp.plotting import PainterXYCaliAmp
-painter = PainterXYCaliAmp()
+from exp.plotting import PainterXYCali
+painter = PainterXYCali()
 painter.process = my_exp.process
-painter.gate = my_exp.gate
 figs = painter.plot(dataset,folder_label)
 if save_figure: dp.save_figs( figs )

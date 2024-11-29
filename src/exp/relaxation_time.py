@@ -35,9 +35,9 @@ class exp_relaxation_time( QMMeasurement):
         max_time unit in us \n
         """
         self.max_time = 5
-        self.time_resolution = 10
-        self.xy_elements = None
-        self.ro_elements = None
+        self.time_resolution = 0.1
+        self.xy_elements = ['q3_xy']
+        self.ro_elements = ['q3_ro']
         self.initializer = None
     def _get_qua_program( self ):
         cc_max_qua = (self.max_time/4) * u.us
