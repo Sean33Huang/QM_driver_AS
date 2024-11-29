@@ -1,6 +1,6 @@
 
 cluster_name = "QPX_3"  # Write your cluster_name if version >= QOP220
-qop_ip = "192.168.1.122"  # Write the QM router IP address
+qop_ip = "192.168.1.9"  # Write the QM router IP address
 qop_port = None 
 
 # Default
@@ -16,19 +16,19 @@ port_mapping = {
 ("con1", 9): ("octave1", "I5"),
 ("con1", 10): ("octave1", "Q5"),
 
-("con2", 1): ("octave2", "I1"),
-("con2", 2): ("octave2", "Q1"),
-("con2", 3): ("octave2", "I2"),
-("con2", 4): ("octave2", "Q2"),
-("con2", 5): ("octave2", "I3"),
-("con2", 6): ("octave2", "Q3"),
-("con2", 7): ("octave2", "I4"),
-("con2", 8): ("octave2", "Q4"),
-("con2", 9): ("octave2", "I5"),
-("con2", 10): ("octave2", "Q5"),
+# ("con2", 1): ("octave2", "I1"),
+# ("con2", 2): ("octave2", "Q1"),
+# ("con2", 3): ("octave2", "I2"),
+# ("con2", 4): ("octave2", "Q2"),
+# ("con2", 5): ("octave2", "I3"),
+# ("con2", 6): ("octave2", "Q3"),
+# ("con2", 7): ("octave2", "I4"),
+# ("con2", 8): ("octave2", "Q4"),
+# ("con2", 9): ("octave2", "I5"),
+# ("con2", 10): ("octave2", "Q5"),
 }
 
-qubit_num = 6
+qubit_num = 9
 
 from qspec.channel_info import ChannelInfo
 spec = ChannelInfo(qubit_num)
@@ -64,32 +64,85 @@ opxp_hardware = {
         2: {"offset": 0, "gain_db": 0},  # Q from down-conversion
     },
 }
+
+# Only for octave
+LO = 6e9
+octave_hardware = {
+    "RF_outputs": {
+        1: {
+            "LO_frequency": LO,
+            "LO_source": "internal",  # can be external or internal. internal is the default
+            "output_mode": "always_on",  # can be: "always_on" / "always_off"/ "triggered" / "triggered_reversed". "always_off" is the default
+            "gain": 0,  # can be in the range [-20 : 0.5 : 20]dB
+        },
+        2: {
+            "LO_frequency": LO,
+            "LO_source": "internal",
+            "output_mode": "always_on",
+            "gain": 0,
+        },
+        3: {
+            "LO_frequency": LO,
+            "LO_source": "internal",
+            "output_mode": "always_on",
+            "gain": 0,
+        },
+        4: {
+            "LO_frequency": LO,
+            "LO_source": "internal",
+            "output_mode": "always_on",
+            "gain": 0,
+        },
+        5: {
+            "LO_frequency": LO,
+            "LO_source": "internal",
+            "output_mode": "always_on",
+            "gain": 0,
+        },
+    },
+    "RF_inputs": {
+        1: {
+            "LO_frequency": LO,
+            "LO_source": "internal",  # internal is the default
+            "IF_mode_I": "direct",  # can be: "direct" / "mixer" / "envelope" / "off". direct is default
+            "IF_mode_Q": "direct",
+        },
+        2: {
+            "LO_frequency": LO,
+            "LO_source": "external",  # external is the default
+            "IF_mode_I": "direct",
+            "IF_mode_Q": "direct",
+        },
+    },
+    "connectivity": "con1",
+}
+
 from config_component.configuration import Configuration
 config_obj = Configuration()
 
 # Create controller
 from config_component.controller import controller_read_dict
 config_obj._controllers["con1"] = controller_read_dict("con1", opxp_hardware)
-config_obj._controllers["con2"] = controller_read_dict("con2", opxp_hardware)
+# config_obj._controllers["con2"] = controller_read_dict("con2", opxp_hardware)
+
+# Create octave
+from config_component.octave import octave_read_dict
+config_obj._octaves["octave1"] = octave_read_dict("octave1", octave_hardware)
+
+
 # Create qubit
 from qspec.construct import create_qubit, create_roChannel, create_zChannel, create_xyChannel
 
-for x_wire in [("q0",("con1",3),("con1",4)),("q3",("con1",7),("con1",8))]:
+for x_wire in [("q0",("con1",3),("con1",4)),("q1",("con1",7),("con1",8)), ("q2",("con1",3),("con1",4)),("q3",("con1",7),("con1",8)), ("q4",("con1",3),("con1",4)), ("q5",("con1",3),("con1",4)),("q6",("con1",7),("con1",8)), ("q7",("con1",3),("con1",4)),("q8",("con1",7),("con1",8))]:
     spec.update_WireInfo_for(x_wire[0],xy_I=x_wire[1],xy_Q=x_wire[2])
 
-for z_wire in [("q0",("con1",5)),("q3",("con1",6)),("q4",("con1",9)),("q5",("con1",10))]:
+for z_wire in [("q0",("con1",5)),("q1",("con1",6)),("q2",("con1",9)),("q3",("con1",10)),("q4",("con1",5)), ("q5",("con1",9)),("q6",("con1",10)),("q7",("con1",5)), ("q8",("con1",6))]:
     spec.update_WireInfo_for(z_wire[0],z=z_wire[1])
-
-# for z_wire in [("q5",("con2",6)), ("q6",("con2",9)), ("q7",("con2",10)), ("q8",("con2",5))]:
-#     spec.update_WireInfo_for(z_wire[0],z=z_wire[1])
 
 for q_idx in range(qubit_num):
     q_name = f"q{q_idx}"
     create_qubit( config_obj,q_name,spec.get_spec_forConfig('ro'),spec.get_spec_forConfig('xy'),spec.get_spec_forConfig('wire'),spec.get_spec_forConfig('z'))
 
-#     create_roChannel( config, f"{q_name}_ro", spec.get_spec_forConfig('ro')[q_name],spec.get_spec_forConfig('wire')[q_name] )
-#     create_xyChannel( config, f"{q_name}_xy", spec.get_spec_forConfig('xy')[q_name],spec.get_spec_forConfig('wire')[q_name] )
-#     create_zChannel( config, f"{q_name}_z", spec.get_spec_forConfig('z')[q_name],spec.get_spec_forConfig('wire')[q_name] )
 
 from pathlib import Path
 # Get the current file path
